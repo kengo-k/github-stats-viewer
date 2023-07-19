@@ -6,3 +6,7 @@ run:
 
 test:
 	elm-test
+
+deploy:
+	elm make src/Main.elm --output=docs/main.js && \
+	npx vercel --prod --token $$(cat vercel_token)
