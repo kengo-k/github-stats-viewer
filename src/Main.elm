@@ -4,6 +4,8 @@ import Browser
 import Html exposing (Html, div, text)
 import Http
 import Json.Decode as Decode exposing (Decoder)
+import Svg exposing (rect, svg)
+import Svg.Attributes exposing (..)
 
 
 type alias Person =
@@ -64,6 +66,21 @@ view model =
 
             Nothing ->
                 text "Loading..."
+        , drawRectangle 10 10 50 50
+        ]
+
+
+drawRectangle : Float -> Float -> Float -> Float -> Html.Html msg
+drawRectangle posX posY rectWidth rectHeight =
+    svg [ viewBox "0 0 200 200", width "100%", height "100%" ]
+        [ rect
+            [ x (String.fromFloat posX)
+            , y (String.fromFloat posY)
+            , width (String.fromFloat rectWidth)
+            , height (String.fromFloat rectHeight)
+            , fill "blue"
+            ]
+            []
         ]
 
 
