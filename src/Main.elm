@@ -2,11 +2,10 @@ module Main exposing (..)
 
 import Browser
 import Html exposing (..)
+import Html.Attributes exposing (class, scope)
 import Http
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline exposing (required)
-import Svg exposing (rect, svg)
-import Svg.Attributes exposing (..)
 
 
 type alias Person =
@@ -52,40 +51,108 @@ repositoryStatDecoder =
 -- tailwindcssを利用した見栄えの良いテーブルを作成する
 
 
-renderTable : Html Msg
-renderTable =
-    let
-        tableClass =
-            "table-auto border-collapse border border-green-800"
-
-        thClass =
-            "border border-green-800 px-4 py-2"
-
-        tdClass =
-            "border border-green-800 px-4 py-2"
-    in
-    table [ class tableClass ]
-        [ thead []
-            [ tr []
-                [ th [ class thClass ] [ text "Name" ]
-                , th [ class thClass ] [ text "Age" ]
-                ]
-            ]
-        , tbody []
-            [ tr []
-                [ td [ class tdClass ] [ text "John" ]
-                , td [ class tdClass ] [ text "25" ]
-                ]
-            , tr []
-                [ td [ class tdClass ] [ text "Jane" ]
-                , td [ class tdClass ] [ text "22" ]
-                ]
-            , tr []
-                [ td [ class tdClass ] [ text "Fred" ]
-                , td [ class tdClass ] [ text "32" ]
+renderTable : List RepositoryStat -> Html Msg
+renderTable repositoryStats =
+    div [ class "max-w-[85rem] px-4 py-10 sm:px-6 lg:px-8 lg:py-14 mx-auto" ]
+        [ div [ class "flex flex-col" ]
+            [ div [ class "-m-1.5 overflow-x-auto" ]
+                [ div [ class "p-1.5 min-w-full inline-block align-middle" ]
+                    [ div [ class "bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden dark:bg-slate-900 dark:border-gray-700" ]
+                        [ div [ class "px-6 py-4 grid gap-3 md:flex md:justify-between md:items-center border-b border-gray-200 dark:border-gray-700" ]
+                            [ div []
+                                [ h2 [ class "text-xl font-semibold text-gray-800 dark:text-gray-200" ] [ text "Repositories" ]
+                                ]
+                            , div []
+                                [ div [] []
+                                ]
+                            ]
+                        , table [ class "min-w-full divide-y divide-gray-200 dark:divide-gray-700" ]
+                            [ thead [ class "bg-gray-50 dark:bg-slate-800" ]
+                                [ tr []
+                                    [ th [ scope "col", class "pl-6 py-3 text-left" ]
+                                        [ div [ class "flex items-center gap-x-2" ]
+                                            [ span [ class "text-xs font-semibold uppercase tracking-wide text-gray-800 dark:text-gray-200" ] [ text "Name" ]
+                                            ]
+                                        ]
+                                    , th [ scope "col", class "pl-6 py-3 text-left" ]
+                                        [ div [ class "flex items-center gap-x-2" ]
+                                            [ span [ class "text-xs font-semibold uppercase tracking-wide text-gray-800 dark:text-gray-200" ] [ text "DiskSize" ]
+                                            ]
+                                        ]
+                                    , th [ scope "col", class "pl-6 py-3 text-left" ]
+                                        [ div [ class "flex items-center gap-x-2" ]
+                                            [ span [ class "text-xs font-semibold uppercase tracking-wide text-gray-800 dark:text-gray-200" ] [ text "HELLO" ]
+                                            ]
+                                        ]
+                                    , th [ scope "col", class "pl-6 py-3 text-left" ]
+                                        [ div [ class "flex items-center gap-x-2" ]
+                                            [ span [ class "text-xs font-semibold uppercase tracking-wide text-gray-800 dark:text-gray-200" ] [ text "HELLO" ]
+                                            ]
+                                        ]
+                                    ]
+                                ]
+                            , tbody [ class "divide-y divide-gray-200 dark:divide-gray-700" ]
+                                (List.map
+                                    (\r ->
+                                        tr []
+                                            [ td [ class "h-px w-px whitespace-nowrap" ]
+                                                [ div [ class "px-6 py-3" ]
+                                                    [ span [ class "inline-flex items-center gap-1.5 py-0.5 px-2 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" ] [ text r.name ]
+                                                    ]
+                                                ]
+                                            , td [ class "h-px w-px whitespace-nowrap" ]
+                                                [ div [ class "px-6 py-3" ]
+                                                    [ span [ class "inline-flex items-center gap-1.5 py-0.5 px-2 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" ] [ text (r.diskUsage |> String.fromInt) ]
+                                                    ]
+                                                ]
+                                            , td [ class "h-px w-px whitespace-nowrap" ]
+                                                [ div [ class "px-6 py-3" ]
+                                                    [ span [ class "inline-flex items-center gap-1.5 py-0.5 px-2 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" ] [ text "NEKO" ]
+                                                    ]
+                                                ]
+                                            , td [ class "h-px w-px whitespace-nowrap" ]
+                                                [ div [ class "px-6 py-3" ]
+                                                    [ span [ class "inline-flex items-center gap-1.5 py-0.5 px-2 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" ] [ text "NEKO" ]
+                                                    ]
+                                                ]
+                                            ]
+                                    )
+                                    repositoryStats
+                                )
+                            ]
+                        ]
+                    ]
                 ]
             ]
         ]
+
+
+
+-- table [ class tableClass ]
+--     [ thead []
+--         [ tr []
+--             [ th [ class thClass ]
+--                 [ text "Name" ]
+--             , th
+--                 [ class thClass ]
+--                 [ text "Size" ]
+--             , th
+--                 [ class thClass ]
+--                 [ text "PushedAt" ]
+--             ]
+--         ]
+--     , tbody []
+--         (List.map
+--             (\r ->
+--                 tr []
+--                     [ td [ class tdClass ] [ text r.name ]
+--                     , td [ class tdClass ] [ text (r.diskUsage |> String.fromInt) ]
+--                     , td [ class tdClass ] [ text r.pushedAt ]
+--                     ]
+--             )
+--             repositoryStats
+--         )
+--     ]
 
 
 repositoryStatListDecoder : Decoder (List RepositoryStat)
@@ -147,7 +214,7 @@ view model =
         [ case model of
             Just repositoryStats ->
                 div []
-                    [ renderTable ]
+                    [ renderTable repositoryStats ]
 
             Nothing ->
                 text "Loading..."
