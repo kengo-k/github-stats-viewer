@@ -1,7 +1,7 @@
 module Main exposing (..)
 
 import Browser
-import Html exposing (Html, div, text)
+import Html exposing (..)
 import Http
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline exposing (required)
@@ -46,6 +46,46 @@ repositoryStatDecoder =
         |> required "languages" (Decode.list repositoryLanguageDecoder)
         |> required "total_commit_count" Decode.int
         |> required "period_commit_count" Decode.int
+
+
+
+-- tailwindcssを利用した見栄えの良いテーブルを作成する
+
+
+renderTable : Html Msg
+renderTable =
+    let
+        tableClass =
+            "table-auto border-collapse border border-green-800"
+
+        thClass =
+            "border border-green-800 px-4 py-2"
+
+        tdClass =
+            "border border-green-800 px-4 py-2"
+    in
+    table [ class tableClass ]
+        [ thead []
+            [ tr []
+                [ th [ class thClass ] [ text "Name" ]
+                , th [ class thClass ] [ text "Age" ]
+                ]
+            ]
+        , tbody []
+            [ tr []
+                [ td [ class tdClass ] [ text "John" ]
+                , td [ class tdClass ] [ text "25" ]
+                ]
+            , tr []
+                [ td [ class tdClass ] [ text "Jane" ]
+                , td [ class tdClass ] [ text "22" ]
+                ]
+            , tr []
+                [ td [ class tdClass ] [ text "Fred" ]
+                , td [ class tdClass ] [ text "32" ]
+                ]
+            ]
+        ]
 
 
 repositoryStatListDecoder : Decoder (List RepositoryStat)
@@ -107,7 +147,7 @@ view model =
         [ case model of
             Just repositoryStats ->
                 div []
-                    [ text ("Repository size: " ++ String.fromInt (List.length repositoryStats)) ]
+                    [ renderTable ]
 
             Nothing ->
                 text "Loading..."

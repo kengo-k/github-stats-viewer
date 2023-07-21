@@ -1,6 +1,9 @@
 elm-stuff
 main.js
-node_modules
+main.css
+data/*.json
+docs/*.html
+docs/*.css
 .vercel
 vercel_token
-data/*.json
+node_modules
