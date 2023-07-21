@@ -3,3 +3,4 @@ main.js
 node_modules
 .vercel
 vercel_token
+data/*.json
