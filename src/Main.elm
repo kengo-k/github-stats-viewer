@@ -2,7 +2,7 @@ module Main exposing (..)
 
 import Browser
 import Html exposing (..)
-import Html.Attributes exposing (class, scope)
+import Html.Attributes exposing (class, scope, style)
 import Http
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline exposing (required)
@@ -18,6 +18,7 @@ type alias RepositoryStat =
     , isArchived : Bool
     , isTemplate : Bool
     , diskUsage : Int
+    , stargazerCount : Int
     , pushedAt : String
     , topics : List String
     , languages : List RepositoryLanguage
@@ -53,6 +54,7 @@ repositoryStatDecoder =
         |> required "is_archived" Decode.bool
         |> required "is_template" Decode.bool
         |> required "disk_usage" Decode.int
+        |> required "stargazer_count" Decode.int
         |> required "pushed_at" Decode.string
         |> required "topics" (Decode.list Decode.string)
         |> required "languages" (Decode.list repositoryLanguageDecoder)
@@ -69,9 +71,19 @@ renderTopics topics =
         (List.sort topics)
 
 
+renderLanguages : List RepositoryLanguage -> List (Html Msg)
+renderLanguages langs =
+    List.map
+        (\l ->
+            span [ class "inline-flex items-center gap-1.5 py-0.5 px-2 mx-0.5 text-xs font-medium text-gray-600" ] [ span [ class "lang-circle", style "background-color" l.color, style "border-color" l.color ] [], span [] [ text l.name ] ]
+        )
+        (List.sortBy .size langs)
+        |> List.reverse
+
+
 renderStarIcon : Html Msg
 renderStarIcon =
-    svg [ viewBox "0 0 16 16", SvgAttr.width "16", SvgAttr.height "16" ] [ path [ d "M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Zm0 2.445L6.615 5.5a.75.75 0 0 1-.564.41l-3.097.45 2.24 2.184a.75.75 0 0 1 .216.664l-.528 3.084 2.769-1.456a.75.75 0 0 1 .698 0l2.77 1.456-.53-3.084a.75.75 0 0 1 .216-.664l2.24-2.183-3.096-.45a.75.75 0 0 1-.564-.41L8 2.694Z" ] [] ]
+    svg [ viewBox "0 0 16 16", SvgAttr.width "16", SvgAttr.height "16", SvgAttr.class "star" ] [ path [ d "M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Zm0 2.445L6.615 5.5a.75.75 0 0 1-.564.41l-3.097.45 2.24 2.184a.75.75 0 0 1 .216.664l-.528 3.084 2.769-1.456a.75.75 0 0 1 .698 0l2.77 1.456-.53-3.084a.75.75 0 0 1 .216-.664l2.24-2.183-3.096-.45a.75.75 0 0 1-.564-.41L8 2.694Z" ] [] ]
 
 
 renderTable : List RepositoryStat -> Html Msg
@@ -95,22 +107,22 @@ renderTable repositoryStats =
                                 [ tr [ class "" ]
                                     [ th [ scope "col", class "pl-6 py-3 text-left" ]
                                         [ div [ class "flex items-center gap-x-2" ]
-                                            [ span [ class "text-xs font-semibold uppercase tracking-wide text-gray-800 dark:text-gray-200" ] [ text "Name" ]
+                                            [ span [ class "text-xs font-semibold tracking-wide text-gray-800 dark:text-gray-200" ] [ text "Name" ]
                                             ]
                                         ]
                                     , th [ scope "col", class "pl-6 py-3 text-left" ]
                                         [ div [ class "flex items-center gap-x-2" ]
-                                            [ span [ class "text-xs font-semibold uppercase tracking-wide text-gray-800 dark:text-gray-200" ] [ text "Topics" ]
+                                            [ span [ class "text-xs font-semibold tracking-wide text-gray-800 dark:text-gray-200" ] [ text "Languages" ]
                                             ]
                                         ]
                                     , th [ scope "col", class "pl-6 py-3 text-left" ]
                                         [ div [ class "flex items-center gap-x-2" ]
-                                            [ span [ class "text-xs font-semibold uppercase tracking-wide text-gray-800 dark:text-gray-200" ] [ text "Commit" ]
+                                            [ span [ class "text-xs font-semibold tracking-wide text-gray-800 dark:text-gray-200" ] [ text "Commit" ]
                                             ]
                                         ]
                                     , th [ scope "col", class "pl-6 py-3 text-left" ]
                                         [ div [ class "flex items-center gap-x-2" ]
-                                            [ span [ class "text-xs font-semibold uppercase tracking-wide text-gray-800 dark:text-gray-200" ] [ text "Pushed_At" ]
+                                            [ span [ class "text-xs font-semibold tracking-wide text-gray-800 dark:text-gray-200" ] [ text "Pushed At" ]
                                             ]
                                         ]
                                     ]
@@ -121,14 +133,14 @@ renderTable repositoryStats =
                                         let
                                             template =
                                                 if r.isTemplate then
-                                                    [ span [ class "inline-flex items-center gap-1.5 py-0.5 px-2 mx-0.5 text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" ] [ text "template" ] ]
+                                                    [ span [ class "inline-flex items-center gap-1.5 py-0.5 px-2 mx-3 text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" ] [ text "template" ] ]
 
                                                 else
                                                     []
 
                                             archived =
                                                 if r.isArchived then
-                                                    [ span [ class "inline-flex items-center gap-1.5 py-0.5 px-2 mx-0.5 text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200" ] [ text "archived" ] ]
+                                                    [ span [ class "inline-flex items-center gap-1.5 py-0.5 px-2 mx-3 text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200" ] [ text "archived" ] ]
 
                                                 else
                                                     []
@@ -137,8 +149,8 @@ renderTable repositoryStats =
                                             [ td [ class "h-px w-px whitespace-nowrap" ]
                                                 [ div [ class "px-6 py-3" ]
                                                     ([ span [ class "block text-sm font-semibold text-gray-800 dark:text-gray-200" ] [ text r.name ]
-                                                     , renderStarIcon
-                                                     , span [ class "text-xs text-gray-500" ] [ text ((r.diskUsage |> String.fromInt) ++ "KB") ]
+                                                     , span [ class "text-xs text-gray-500 mx-1" ] [ renderStarIcon, text (r.stargazerCount |> String.fromInt) ]
+                                                     , span [ class "text-xs text-gray-500" ] [ text (" disk size: " ++ (r.diskUsage |> String.fromInt) ++ "KB") ]
                                                      ]
                                                         ++ template
                                                         ++ archived
@@ -146,7 +158,7 @@ renderTable repositoryStats =
                                                 ]
                                             , td [ class "h-px w-px whitespace-nowrap" ]
                                                 [ div [ class "px-6 py-3" ]
-                                                    (renderTopics r.topics)
+                                                    [ div [] (renderLanguages r.languages), div [] (renderTopics r.topics) ]
                                                 ]
                                             , td [ class "h-px w-px whitespace-nowrap" ]
                                                 [ div [ class "px-6 py-3" ]

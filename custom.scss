@@ -1,3 +1,12 @@
-.helloworld {
-	font-size: 20px;
+svg.star {
+	display: inline;
+	fill: gray;
+}
+
+.lang-circle {
+	display: inline-block;
+	width: 12px;
+	height: 12px;
+	border: 1px solid;
+	border-radius: 50%;
 }
