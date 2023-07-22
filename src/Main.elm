@@ -62,7 +62,7 @@ renderTopics : List String -> List (Html Msg)
 renderTopics topics =
     List.map
         (\t ->
-            span [ class "inline-flex items-center gap-1.5 py-0.5 px-2 mx-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" ] [ text t ]
+            span [ class "inline-flex items-center gap-1.5 py-0.5 px-2 mx-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200" ] [ text t ]
         )
         topics
 
@@ -114,6 +114,7 @@ renderTable repositoryStats =
                                             [ td [ class "h-px w-px whitespace-nowrap" ]
                                                 [ div [ class "px-6 py-3" ]
                                                     [ span [ class "block text-sm font-semibold text-gray-800 dark:text-gray-200" ] [ text r.name ]
+                                                    , span [ class "block text-xs text-gray-500" ] [ text ((r.diskUsage |> String.fromInt) ++ "KB") ]
                                                     ]
                                                 ]
                                             , td [ class "h-px w-px whitespace-nowrap" ]
@@ -127,7 +128,7 @@ renderTable repositoryStats =
                                                 ]
                                             , td [ class "h-px w-px whitespace-nowrap" ]
                                                 [ div [ class "px-6 py-3" ]
-                                                    [ span [ class "block text-sm font-semibold text-gray-800 dark:text-gray-200" ] [ text r.pushedAt ]
+                                                    [ span [ class "block text-sm font-semibold text-gray-800 dark:text-gray-200" ] [ text (r.pushedAt |> String.left 10) ]
                                                     ]
                                                 ]
                                             ]
