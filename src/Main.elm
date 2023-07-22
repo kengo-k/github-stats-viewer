@@ -8,12 +8,6 @@ import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline exposing (required)
 
 
-type alias Person =
-    { name : String
-    , age : Int
-    }
-
-
 type alias RepositoryStat =
     { id : String
     , name : String
@@ -28,6 +22,23 @@ type alias RepositoryStat =
     , totalCommitCount : Int
     , periodCommitCount : Int
     }
+
+
+type alias RepositoryLanguage =
+    { name : String
+    , color : String
+    , size : Int
+    }
+
+
+type alias Model =
+    { stats : Maybe (List RepositoryStat)
+    , sortStats : RepositoryStat -> RepositoryStat -> Order
+    }
+
+
+type Msg
+    = Init (Result Http.Error (List RepositoryStat))
 
 
 repositoryStatDecoder : Decoder RepositoryStat
@@ -47,8 +58,13 @@ repositoryStatDecoder =
         |> required "period_commit_count" Decode.int
 
 
-
--- tailwindcssを利用した見栄えの良いテーブルを作成する
+renderTopics : List String -> List (Html Msg)
+renderTopics topics =
+    List.map
+        (\t ->
+            span [ class "inline-flex items-center gap-1.5 py-0.5 px-2 mx-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" ] [ text t ]
+        )
+        topics
 
 
 renderTable : List RepositoryStat -> Html Msg
@@ -57,7 +73,7 @@ renderTable repositoryStats =
         [ div [ class "flex flex-col" ]
             [ div [ class "-m-1.5 overflow-x-auto" ]
                 [ div [ class "p-1.5 min-w-full inline-block align-middle" ]
-                    [ div [ class "bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden dark:bg-slate-900 dark:border-gray-700" ]
+                    [ div [ class "bg-white border border-gray-200 rounded-xl shadow-sm dark:bg-slate-900 dark:border-gray-700 h-96 overflow-y-auto" ]
                         [ div [ class "px-6 py-4 grid gap-3 md:flex md:justify-between md:items-center border-b border-gray-200 dark:border-gray-700" ]
                             [ div []
                                 [ h2 [ class "text-xl font-semibold text-gray-800 dark:text-gray-200" ] [ text "Repositories" ]
@@ -67,8 +83,8 @@ renderTable repositoryStats =
                                 ]
                             ]
                         , table [ class "min-w-full divide-y divide-gray-200 dark:divide-gray-700" ]
-                            [ thead [ class "bg-gray-50 dark:bg-slate-800" ]
-                                [ tr []
+                            [ thead [ class "bg-gray-50 dark:bg-slate-800 sticky top-0" ]
+                                [ tr [ class "" ]
                                     [ th [ scope "col", class "pl-6 py-3 text-left" ]
                                         [ div [ class "flex items-center gap-x-2" ]
                                             [ span [ class "text-xs font-semibold uppercase tracking-wide text-gray-800 dark:text-gray-200" ] [ text "Name" ]
@@ -76,17 +92,17 @@ renderTable repositoryStats =
                                         ]
                                     , th [ scope "col", class "pl-6 py-3 text-left" ]
                                         [ div [ class "flex items-center gap-x-2" ]
-                                            [ span [ class "text-xs font-semibold uppercase tracking-wide text-gray-800 dark:text-gray-200" ] [ text "DiskSize" ]
+                                            [ span [ class "text-xs font-semibold uppercase tracking-wide text-gray-800 dark:text-gray-200" ] [ text "Topics" ]
                                             ]
                                         ]
                                     , th [ scope "col", class "pl-6 py-3 text-left" ]
                                         [ div [ class "flex items-center gap-x-2" ]
-                                            [ span [ class "text-xs font-semibold uppercase tracking-wide text-gray-800 dark:text-gray-200" ] [ text "HELLO" ]
+                                            [ span [ class "text-xs font-semibold uppercase tracking-wide text-gray-800 dark:text-gray-200" ] [ text "Commit" ]
                                             ]
                                         ]
                                     , th [ scope "col", class "pl-6 py-3 text-left" ]
                                         [ div [ class "flex items-center gap-x-2" ]
-                                            [ span [ class "text-xs font-semibold uppercase tracking-wide text-gray-800 dark:text-gray-200" ] [ text "HELLO" ]
+                                            [ span [ class "text-xs font-semibold uppercase tracking-wide text-gray-800 dark:text-gray-200" ] [ text "Pushed_At" ]
                                             ]
                                         ]
                                     ]
@@ -97,22 +113,21 @@ renderTable repositoryStats =
                                         tr []
                                             [ td [ class "h-px w-px whitespace-nowrap" ]
                                                 [ div [ class "px-6 py-3" ]
-                                                    [ span [ class "inline-flex items-center gap-1.5 py-0.5 px-2 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" ] [ text r.name ]
+                                                    [ span [ class "block text-sm font-semibold text-gray-800 dark:text-gray-200" ] [ text r.name ]
                                                     ]
                                                 ]
                                             , td [ class "h-px w-px whitespace-nowrap" ]
                                                 [ div [ class "px-6 py-3" ]
-                                                    [ span [ class "inline-flex items-center gap-1.5 py-0.5 px-2 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" ] [ text (r.diskUsage |> String.fromInt) ]
+                                                    (renderTopics r.topics)
+                                                ]
+                                            , td [ class "h-px w-px whitespace-nowrap" ]
+                                                [ div [ class "px-6 py-3" ]
+                                                    [ span [ class "block text-sm font-semibold text-gray-800 dark:text-gray-200" ] [ text (r.totalCommitCount |> String.fromInt) ]
                                                     ]
                                                 ]
                                             , td [ class "h-px w-px whitespace-nowrap" ]
                                                 [ div [ class "px-6 py-3" ]
-                                                    [ span [ class "inline-flex items-center gap-1.5 py-0.5 px-2 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" ] [ text "NEKO" ]
-                                                    ]
-                                                ]
-                                            , td [ class "h-px w-px whitespace-nowrap" ]
-                                                [ div [ class "px-6 py-3" ]
-                                                    [ span [ class "inline-flex items-center gap-1.5 py-0.5 px-2 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" ] [ text "NEKO" ]
+                                                    [ span [ class "block text-sm font-semibold text-gray-800 dark:text-gray-200" ] [ text r.pushedAt ]
                                                     ]
                                                 ]
                                             ]
@@ -127,44 +142,9 @@ renderTable repositoryStats =
         ]
 
 
-
--- table [ class tableClass ]
---     [ thead []
---         [ tr []
---             [ th [ class thClass ]
---                 [ text "Name" ]
---             , th
---                 [ class thClass ]
---                 [ text "Size" ]
---             , th
---                 [ class thClass ]
---                 [ text "PushedAt" ]
---             ]
---         ]
---     , tbody []
---         (List.map
---             (\r ->
---                 tr []
---                     [ td [ class tdClass ] [ text r.name ]
---                     , td [ class tdClass ] [ text (r.diskUsage |> String.fromInt) ]
---                     , td [ class tdClass ] [ text r.pushedAt ]
---                     ]
---             )
---             repositoryStats
---         )
---     ]
-
-
 repositoryStatListDecoder : Decoder (List RepositoryStat)
 repositoryStatListDecoder =
     Decode.list repositoryStatDecoder
-
-
-type alias RepositoryLanguage =
-    { name : String
-    , color : String
-    , size : Int
-    }
 
 
 repositoryLanguageDecoder : Decoder RepositoryLanguage
@@ -175,14 +155,6 @@ repositoryLanguageDecoder =
         |> required "size" Decode.int
 
 
-type alias Model =
-    Maybe (List RepositoryStat)
-
-
-type Msg
-    = Init (Result Http.Error (List RepositoryStat))
-
-
 loadJson : Cmd Msg
 loadJson =
     Http.get
@@ -191,9 +163,44 @@ loadJson =
         }
 
 
+sortStatsByDefault : RepositoryStat -> RepositoryStat -> Order
+sortStatsByDefault a b =
+    let
+        period =
+            compare b.periodCommitCount a.periodCommitCount
+
+        pushed =
+            compare b.pushedAt a.pushedAt
+
+        total =
+            compare b.totalCommitCount a.periodCommitCount
+    in
+    if period /= EQ then
+        period
+
+    else if pushed /= EQ then
+        pushed
+
+    else
+        total
+
+
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( Nothing, loadJson )
+    ( { stats = Nothing, sortStats = sortStatsByDefault }, loadJson )
+
+
+view : Model -> Html Msg
+view model =
+    div []
+        [ case model.stats of
+            Just repositoryStats ->
+                div []
+                    [ renderTable repositoryStats ]
+
+            Nothing ->
+                text "Loading..."
+        ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -202,23 +209,10 @@ update msg model =
         Init result ->
             case result of
                 Ok initialData ->
-                    ( Just initialData, Cmd.none )
+                    ( { model | stats = Just (List.sortWith model.sortStats initialData) }, Cmd.none )
 
                 Err _ ->
                     ( model, Cmd.none )
-
-
-view : Model -> Html Msg
-view model =
-    div []
-        [ case model of
-            Just repositoryStats ->
-                div []
-                    [ renderTable repositoryStats ]
-
-            Nothing ->
-                text "Loading..."
-        ]
 
 
 main : Program () Model Msg
