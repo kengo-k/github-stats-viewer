@@ -6,6 +6,8 @@ import Html.Attributes exposing (class, scope)
 import Http
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline exposing (required)
+import Svg exposing (path, svg)
+import Svg.Attributes as SvgAttr exposing (d, viewBox)
 
 
 type alias RepositoryStat =
@@ -64,7 +66,12 @@ renderTopics topics =
         (\t ->
             span [ class "inline-flex items-center gap-1.5 py-0.5 px-2 mx-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200" ] [ text t ]
         )
-        topics
+        (List.sort topics)
+
+
+renderStarIcon : Html Msg
+renderStarIcon =
+    svg [ viewBox "0 0 16 16", SvgAttr.width "16", SvgAttr.height "16" ] [ path [ d "M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Zm0 2.445L6.615 5.5a.75.75 0 0 1-.564.41l-3.097.45 2.24 2.184a.75.75 0 0 1 .216.664l-.528 3.084 2.769-1.456a.75.75 0 0 1 .698 0l2.77 1.456-.53-3.084a.75.75 0 0 1 .216-.664l2.24-2.183-3.096-.45a.75.75 0 0 1-.564-.41L8 2.694Z" ] [] ]
 
 
 renderTable : List RepositoryStat -> Html Msg
@@ -76,7 +83,8 @@ renderTable repositoryStats =
                     [ div [ class "bg-white border border-gray-200 rounded-xl shadow-sm dark:bg-slate-900 dark:border-gray-700 h-96 overflow-y-auto" ]
                         [ div [ class "px-6 py-4 grid gap-3 md:flex md:justify-between md:items-center border-b border-gray-200 dark:border-gray-700" ]
                             [ div []
-                                [ h2 [ class "text-xl font-semibold text-gray-800 dark:text-gray-200" ] [ text "Repositories" ]
+                                [ h2 [ class "text-xl font-semibold text-gray-800 dark:text-gray-200" ] [ text "GitHub Repositories" ]
+                                , p [ class "text-sm text-gray-600 dark:text-gray-400" ] [ text ("count: " ++ (repositoryStats |> List.length |> String.fromInt)) ]
                                 ]
                             , div []
                                 [ div [] []
@@ -110,12 +118,31 @@ renderTable repositoryStats =
                             , tbody [ class "divide-y divide-gray-200 dark:divide-gray-700" ]
                                 (List.map
                                     (\r ->
+                                        let
+                                            template =
+                                                if r.isTemplate then
+                                                    [ span [ class "inline-flex items-center gap-1.5 py-0.5 px-2 mx-0.5 text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" ] [ text "template" ] ]
+
+                                                else
+                                                    []
+
+                                            archived =
+                                                if r.isArchived then
+                                                    [ span [ class "inline-flex items-center gap-1.5 py-0.5 px-2 mx-0.5 text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200" ] [ text "archived" ] ]
+
+                                                else
+                                                    []
+                                        in
                                         tr []
                                             [ td [ class "h-px w-px whitespace-nowrap" ]
                                                 [ div [ class "px-6 py-3" ]
-                                                    [ span [ class "block text-sm font-semibold text-gray-800 dark:text-gray-200" ] [ text r.name ]
-                                                    , span [ class "block text-xs text-gray-500" ] [ text ((r.diskUsage |> String.fromInt) ++ "KB") ]
-                                                    ]
+                                                    ([ span [ class "block text-sm font-semibold text-gray-800 dark:text-gray-200" ] [ text r.name ]
+                                                     , renderStarIcon
+                                                     , span [ class "text-xs text-gray-500" ] [ text ((r.diskUsage |> String.fromInt) ++ "KB") ]
+                                                     ]
+                                                        ++ template
+                                                        ++ archived
+                                                    )
                                                 ]
                                             , td [ class "h-px w-px whitespace-nowrap" ]
                                                 [ div [ class "px-6 py-3" ]
