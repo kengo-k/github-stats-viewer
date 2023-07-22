@@ -17,4 +17,4 @@ css:
 	rm _styles.css
 
 dev-css:
-	npx onchange "src/**/*.elm" -- npx postcss styles.css -o main.css
+	npx onchange "src/**/*.elm" styles.scss custom.scss -- sh -c 'npx node-sass styles.scss styles.css && npx postcss styles.css -o main.css'
