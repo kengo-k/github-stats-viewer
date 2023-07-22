@@ -3,6 +3,7 @@ module Main exposing (..)
 import Browser
 import Html exposing (..)
 import Html.Attributes exposing (class, scope, style)
+import Html.Events exposing (onClick)
 import Http
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline exposing (required)
@@ -40,8 +41,20 @@ type alias Model =
     }
 
 
+type SortItem
+    = Name
+    | Commit
+    | PushedAt
+
+
+type SortOrder
+    = Asc
+    | Desc
+
+
 type Msg
     = Init (Result Http.Error (List RepositoryStat))
+    | Sort SortItem SortOrder
 
 
 repositoryStatDecoder : Decoder RepositoryStat
@@ -75,7 +88,15 @@ renderLanguages : List RepositoryLanguage -> List (Html Msg)
 renderLanguages langs =
     List.map
         (\l ->
-            span [ class "inline-flex items-center gap-1.5 py-0.5 px-2 mx-0.5 text-xs font-medium text-gray-600" ] [ span [ class "lang-circle", style "background-color" l.color, style "border-color" l.color ] [], span [] [ text l.name ] ]
+            span [ class "inline-flex items-center gap-1.5 py-0.5 px-2 mx-0.5 text-xs font-medium text-gray-600" ]
+                [ span
+                    [ class "lang-circle"
+                    , style "background-color" l.color
+                    , style "border-color" l.color
+                    ]
+                    []
+                , span [] [ text l.name ]
+                ]
         )
         (List.sortBy .size langs)
         |> List.reverse
@@ -83,7 +104,13 @@ renderLanguages langs =
 
 renderStarIcon : Html Msg
 renderStarIcon =
-    svg [ viewBox "0 0 16 16", SvgAttr.width "16", SvgAttr.height "16", SvgAttr.class "star" ] [ path [ d "M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Zm0 2.445L6.615 5.5a.75.75 0 0 1-.564.41l-3.097.45 2.24 2.184a.75.75 0 0 1 .216.664l-.528 3.084 2.769-1.456a.75.75 0 0 1 .698 0l2.77 1.456-.53-3.084a.75.75 0 0 1 .216-.664l2.24-2.183-3.096-.45a.75.75 0 0 1-.564-.41L8 2.694Z" ] [] ]
+    svg
+        [ viewBox "0 0 16 16"
+        , SvgAttr.width "16"
+        , SvgAttr.height "16"
+        , SvgAttr.class "star"
+        ]
+        [ path [ d "M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Zm0 2.445L6.615 5.5a.75.75 0 0 1-.564.41l-3.097.45 2.24 2.184a.75.75 0 0 1 .216.664l-.528 3.084 2.769-1.456a.75.75 0 0 1 .698 0l2.77 1.456-.53-3.084a.75.75 0 0 1 .216-.664l2.24-2.183-3.096-.45a.75.75 0 0 1-.564-.41L8 2.694Z" ] [] ]
 
 
 renderTable : List RepositoryStat -> Html Msg
@@ -117,7 +144,7 @@ renderTable repositoryStats =
                                         ]
                                     , th [ scope "col", class "pl-6 py-3 text-left" ]
                                         [ div [ class "flex items-center gap-x-2" ]
-                                            [ span [ class "text-xs font-semibold tracking-wide text-gray-800 dark:text-gray-200" ] [ text "Commit" ]
+                                            [ span [ class "text-xs font-semibold tracking-wide text-gray-800 dark:text-gray-200" ] [ span [ class "sort-asc", onClick (Sort Commit Asc) ] [], span [ class "sort-desc" ] [], text "Commit" ]
                                             ]
                                         ]
                                     , th [ scope "col", class "pl-6 py-3 text-left" ]
@@ -243,6 +270,62 @@ view model =
         ]
 
 
+createCustomSort : (RepositoryStat -> RepositoryStat -> Order) -> (RepositoryStat -> RepositoryStat -> Order)
+createCustomSort customSort =
+    \a b ->
+        let
+            ord =
+                customSort a b
+        in
+        case ord of
+            EQ ->
+                sortStatsByDefault a b
+
+            _ ->
+                ord
+
+
+getCustomSort : SortItem -> SortOrder -> (RepositoryStat -> RepositoryStat -> Order)
+getCustomSort item order =
+    let
+        nameAsc =
+            \a b -> compare a.name b.name
+
+        nameDesc =
+            \a b -> compare b.name a.name
+
+        commitAsc =
+            \a b -> compare a.totalCommitCount b.totalCommitCount
+
+        commitDesc =
+            \a b -> compare b.totalCommitCount a.totalCommitCount
+
+        pushedAsc =
+            \a b -> compare a.pushedAt b.pushedAt
+
+        pushedDesc =
+            \a b -> compare b.pushedAt a.pushedAt
+    in
+    case ( item, order ) of
+        ( Name, Asc ) ->
+            \a b -> createCustomSort nameAsc a b
+
+        ( Name, Desc ) ->
+            \a b -> createCustomSort nameDesc a b
+
+        ( Commit, Asc ) ->
+            \a b -> createCustomSort commitAsc a b
+
+        ( Commit, Desc ) ->
+            \a b -> createCustomSort commitDesc a b
+
+        ( PushedAt, Asc ) ->
+            \a b -> createCustomSort pushedAsc a b
+
+        ( PushedAt, Desc ) ->
+            \a b -> createCustomSort pushedDesc a b
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -252,6 +335,14 @@ update msg model =
                     ( { model | stats = Just (List.sortWith model.sortStats initialData) }, Cmd.none )
 
                 Err _ ->
+                    ( model, Cmd.none )
+
+        Sort item order ->
+            case model.stats of
+                Just stats ->
+                    ( { model | sortStats = getCustomSort item order, stats = Just (List.sortWith (getCustomSort item order) stats) }, Cmd.none )
+
+                Nothing ->
                     ( model, Cmd.none )
 
 

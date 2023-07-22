@@ -10,3 +10,19 @@ svg.star {
 	border: 1px solid;
 	border-radius: 50%;
 }
+
+.sort-asc {
+	width: 0;
+	height: 0;
+	border-left: 5px solid transparent;
+	border-right: 5px solid transparent;
+	border-bottom: 10px solid black;
+}
+
+.sort-desc {
+	width: 0;
+	height: 0;
+	border-left: 5px solid transparent;
+	border-right: 5px solid transparent;
+	border-top: 10px solid black;
+}
