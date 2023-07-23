@@ -57,6 +57,22 @@ type Msg
     | Sort SortItem SortOrder
 
 
+
+-- <div class="flex justify-center items-center w-5 h-5 border border-gray-200 group-hover:bg-gray-200 text-gray-400 rounded dark:border-gray-700 dark:group-hover:bg-gray-700 dark:text-gray-400">
+--                                               <svg class="w-2.5 h-2.5" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+--                                                 <path d="M7.55921 0.287451C7.86808 -0.0958171 8.40096 -0.0958167 8.70982 0.287451L12.9295 5.52367C13.3857 6.08979 13.031 7 12.3542 7H3.91488C3.23806 7 2.88336 6.08979 3.33957 5.52367L7.55921 0.287451Z" fill="currentColor"></path>
+--                                                 <path d="M8.70983 15.7125C8.40096 16.0958 7.86808 16.0958 7.55921 15.7125L3.33957 10.4763C2.88336 9.9102 3.23806 9 3.91488 9H12.3542C13.031 9 13.3857 9.9102 12.9295 10.4763L8.70983 15.7125Z" fill="currentColor"></path>
+--                                               </svg>
+--                                             </div>
+
+
+renderSortIcon : Html Msg
+renderSortIcon =
+    span [ class "w-5 h-5 border border-gray-200 group-hover:bg-gray-200 text-gray-400 rounded dark:border-gray-700 dark:group-hover:bg-gray-700 dark:text-gray-400 inline-block" ]
+        [ text "A"
+        ]
+
+
 repositoryStatDecoder : Decoder RepositoryStat
 repositoryStatDecoder =
     Decode.succeed RepositoryStat
@@ -134,17 +150,17 @@ renderTable repositoryStats =
                                 [ tr [ class "" ]
                                     [ th [ scope "col", class "pl-6 py-3 text-left" ]
                                         [ div [ class "flex items-center gap-x-2" ]
-                                            [ span [ class "text-xs font-semibold tracking-wide text-gray-800 dark:text-gray-200" ] [ text "Name" ]
+                                            [ span [ class "text-xs font-semibold tracking-wide text-gray-800 dark:text-gray-200" ] [ text "Name", renderSortIcon ]
                                             ]
                                         ]
                                     , th [ scope "col", class "pl-6 py-3 text-left" ]
                                         [ div [ class "flex items-center gap-x-2" ]
-                                            [ span [ class "text-xs font-semibold tracking-wide text-gray-800 dark:text-gray-200" ] [ text "Languages" ]
+                                            [ span [ class "text-xs font-semibold tracking-wide text-gray-800 dark:text-gray-200" ] [ text "Types" ]
                                             ]
                                         ]
                                     , th [ scope "col", class "pl-6 py-3 text-left" ]
                                         [ div [ class "flex items-center gap-x-2" ]
-                                            [ span [ class "text-xs font-semibold tracking-wide text-gray-800 dark:text-gray-200" ] [ span [ class "sort-asc", onClick (Sort Commit Asc) ] [], span [ class "sort-desc" ] [], text "Commit" ]
+                                            [ span [ class "text-xs font-semibold tracking-wide text-gray-800 dark:text-gray-200" ] [ text "Commit", renderSortIcon ]
                                             ]
                                         ]
                                     , th [ scope "col", class "pl-6 py-3 text-left" ]
@@ -185,7 +201,9 @@ renderTable repositoryStats =
                                                 ]
                                             , td [ class "h-px w-px whitespace-nowrap" ]
                                                 [ div [ class "px-6 py-3" ]
-                                                    [ div [] (renderLanguages r.languages), div [] (renderTopics r.topics) ]
+                                                    [ div [] (span [ class "text-xs font-normal text-gray-600" ] [ text "Languages: " ] :: renderLanguages r.languages)
+                                                    , div [] (span [ class "text-xs font-normal text-gray-600 mr-8 inline-block" ] [ text "Topics: " ] :: renderTopics r.topics)
+                                                    ]
                                                 ]
                                             , td [ class "h-px w-px whitespace-nowrap" ]
                                                 [ div [ class "px-6 py-3" ]
